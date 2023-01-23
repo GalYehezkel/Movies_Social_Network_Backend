@@ -12,9 +12,9 @@ public class MoviesController {
     @PostMapping("/login")
     @CrossOrigin(origins = "http://localhost:3000")
     UserId login(@RequestBody Login login) {
-        Integer userId = moviesFunctions.login(login);
+        UserId userId = moviesFunctions.login(login);
         if (userId != null) {
-            return new UserId(userId, login.getUser_name());
+            return userId;
         } else {
             throw new LoginException();
         }
@@ -23,9 +23,9 @@ public class MoviesController {
     @PutMapping("/create-user")
     @CrossOrigin(origins = "http://localhost:3000")
     UserId createUser(@RequestBody CreateUser createUser) {
-        Integer userId = moviesFunctions.createUser(createUser);
+        UserId userId = moviesFunctions.createUser(createUser);
         if (userId != null) {
-            return new UserId(userId, createUser.getUser_name());
+            return userId;
         } else {
             throw new CreateUserException();
         }

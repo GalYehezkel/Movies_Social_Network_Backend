@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class UserId {
     private Integer userId;
     private String userName;
+    private Integer userLikes;
 }

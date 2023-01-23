@@ -83,6 +83,10 @@ public class QueriesName {
     public final static String runTimeSmallerThan = "SELECT movies.movie_id, movies.title, movies.language, movies.budget, movies.revenue, movies.runtime, movies.production_company " +
             "from movies  " +
             "where movies.runtime < ? ";
+    public final static String userLikesAmount = "select COUNT(user_name) as likes " +
+            "from likes, users " +
+            "WHERE likes.user_id = users.user_id && " +
+            "users.user_name = ?;";
     // LIKE
     public final static String byLanguage = "SELECT * " +
             "FROM movies_social_network.movies " +

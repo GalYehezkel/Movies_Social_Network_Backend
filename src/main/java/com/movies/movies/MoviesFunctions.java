@@ -281,7 +281,7 @@ public class MoviesFunctions {
 	/**
 	 * login with username and password, returns user id. Has error handling.
 	 */
-	public Integer login(Login login) {
+	public UserId login(Login login) {
 		String query = "select * from users where user_name = ? and password = ?;";
 
 		try (PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -289,7 +289,19 @@ public class MoviesFunctions {
 			pstmt.setString(2, login.getPassword());
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next() == true) {
-				return rs.getInt("user_id");
+				UserId userId = new UserId();
+				try (PreparedStatement pstmt2 = conn.prepareStatement(QueriesName.userLikesAmount)) {
+					pstmt2.setString(1, login.getUser_name());
+					ResultSet rs2 = pstmt2.executeQuery();
+					if (rs2.next() == false) {
+						userId.setUserLikes(0);
+					} else {
+						userId.setUserLikes(rs2.getInt("likes"));
+					}
+				}
+				userId.setUserId(rs.getInt("user_id"));
+				userId.setUserName(rs.getString("user_name"));
+				return userId;
 			}
 		}
 		catch (SQLException e) {
@@ -298,7 +310,7 @@ public class MoviesFunctions {
 		return null;
 	}
 
-	public Integer createUser(CreateUser createUser) {
+	public UserId createUser(CreateUser createUser) {
 		String query = "INSERT INTO users(user_name, password) VALUES(?,?)";
 		try (PreparedStatement pstmt = conn.prepareStatement(query);) {
 			pstmt.setString(1, createUser.getUser_name());
@@ -863,11 +875,21 @@ public class MoviesFunctions {
 	public List<UserId> getUsers() {
 		List<UserId> users = new LinkedList<>();
 		try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("select * from users");) {
-
 			while (rs.next() == true) {
-				Integer userId = rs.getInt("user_id");
+				UserId userId = new UserId();
 				String userName = rs.getString("user_name");
-				users.add(new UserId(userId, userName));
+				userId.setUserId(rs.getInt("user_id"));
+				userId.setUserName(rs.getString("user_name"));
+				try (PreparedStatement pstmt2 = conn.prepareStatement(QueriesName.userLikesAmount)) {
+					pstmt2.setString(1, userName);
+					ResultSet rs2 = pstmt2.executeQuery();
+					if (rs2.next() == false) {
+						userId.setUserLikes(0);
+					} else {
+						userId.setUserLikes(rs2.getInt("likes"));
+					}
+				}
+				users.add(userId);
 			}
 		} catch (SQLException e) {
 			System.out.println("ERROR executeQuery - " + e.getMessage());
