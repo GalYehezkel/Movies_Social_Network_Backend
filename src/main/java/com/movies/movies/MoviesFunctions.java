@@ -857,6 +857,9 @@ public class MoviesFunctions {
 		System.out.println("Took " + time + " seconds");
 	}
 
+	/**
+	 * make query for three params.
+	 */
 	private String makeQueryFromThreeParams(String inputOne, String inputTwo, String inputThree) {
 		return "SELECT * " +
 				"FROM movies_social_network.movies " +
@@ -872,6 +875,9 @@ public class MoviesFunctions {
 				"ORDER BY " + inputOne + " " + inputTwo + ";";
 	}
 
+	/**
+	 * get users
+	 */
 	public List<UserId> getUsers() {
 		List<UserId> users = new LinkedList<>();
 		try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("select * from users");) {
