@@ -99,7 +99,6 @@ public class MoviesFunctions {
 				}
 				String genreName = rs.getString("name");
 				genresList.add(genreName);
-
 			}
 		} catch (SQLException e) {
 			System.out.println("ERROR executeQuery - " + e.getMessage());
@@ -354,6 +353,82 @@ public class MoviesFunctions {
 			System.out.println("ERROR executeQuery - " + e.getMessage());
 		}
 	}
+
+	/**
+	 * make query for three params.
+	 */
+	private String makeQueryFromThreeParams(String inputOne, String inputTwo, String inputThree) {
+		return "SELECT * " +
+				"FROM movies_social_network.movies " +
+				"WHERE movies." + inputThree + "= ( " +
+				"SELECT m3." + inputThree + " " +
+				"FROM ( " +
+				"SELECT m2." + inputThree + ", AVG(m2." + inputOne + ") as avg " +
+				"FROM movies_social_network.movies AS m2 " +
+				"WHERE m2." + inputOne + " > 0 " +
+				"GROUP BY m2." + inputThree + " " +
+				"ORDER BY avg " + inputTwo + ") AS m3 " +
+				"LIMIT 1) " +
+				"ORDER BY " + inputOne + " " + inputTwo + ";";
+	}
+
+	/**
+	 * get users
+	 */
+	public List<UserId> getUsers() {
+		List<UserId> users = new LinkedList<>();
+		try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("select * from users");) {
+			while (rs.next() == true) {
+				UserId userId = new UserId();
+				String userName = rs.getString("user_name");
+				userId.setUserId(rs.getInt("user_id"));
+				userId.setUserName(rs.getString("user_name"));
+				try (PreparedStatement pstmt2 = conn.prepareStatement(QueriesName.userLikesAmount)) {
+					pstmt2.setString(1, userName);
+					ResultSet rs2 = pstmt2.executeQuery();
+					if (rs2.next() == false) {
+						userId.setUserLikes(0);
+					} else {
+						userId.setUserLikes(rs2.getInt("likes"));
+					}
+				}
+				users.add(userId);
+			}
+		} catch (SQLException e) {
+			System.out.println("ERROR executeQuery - " + e.getMessage());
+		}
+		return users;
+	}
+
+
+	public void stringToNull(String[] strings, int i){
+
+		strings[i - 1] = strings[i - 1] + strings[i];
+		strings[i] = "null";
+
+	}
+	public void stringValidation(String[] strings){
+
+		int i = 0;
+		int j = strings.length;
+
+		for(i=0; i < j; i++){
+
+			if( i > 1 && i < j-1){
+				if( !strings[i-1].contains("id") && !strings[i].contains("id") && strings[i+1].contains("id")) {
+
+					stringToNull(strings, i);
+				}
+
+			}else if( i == j -1 && !strings[i-1].contains("id") && !strings[i].contains("id") ){
+
+				stringToNull(strings, i);
+			}
+
+		}
+
+	}
+
 
 	/**
 	 * insert users to DB
@@ -797,33 +872,7 @@ public class MoviesFunctions {
 		}
 	}
 
-	public void stringToNull(String[] strings, int i){
 
-		strings[i - 1] = strings[i - 1] + strings[i];
-		strings[i] = "null";
-
-	}
-	public void stringValidation(String[] strings){
-
-		int i = 0;
-		int j = strings.length;
-
-		for(i=0; i < j; i++){
-
-			if( i > 1 && i < j-1){
-				if( !strings[i-1].contains("id") && !strings[i].contains("id") && strings[i+1].contains("id")) {
-
-					stringToNull(strings, i);
-				}
-
-			}else if( i == j -1 && !strings[i-1].contains("id") && !strings[i].contains("id") ){
-
-				stringToNull(strings, i);
-			}
-
-		}
-
-	}
 
 	/**
 	 * Attempts to set the connection back to auto-commit, ignoring errors.
@@ -855,52 +904,6 @@ public class MoviesFunctions {
 	private void printTimeDiff(long time) {
 		time = (System.currentTimeMillis() - time) / 1000;
 		System.out.println("Took " + time + " seconds");
-	}
-
-	/**
-	 * make query for three params.
-	 */
-	private String makeQueryFromThreeParams(String inputOne, String inputTwo, String inputThree) {
-		return "SELECT * " +
-				"FROM movies_social_network.movies " +
-				"WHERE movies." + inputThree + "= ( " +
-				"SELECT m3." + inputThree + " " +
-				"FROM ( " +
-				"SELECT m2." + inputThree + ", AVG(m2." + inputOne + ") as avg " +
-				"FROM movies_social_network.movies AS m2 " +
-				"WHERE m2." + inputOne + " > 0 " +
-				"GROUP BY m2." + inputThree + " " +
-				"ORDER BY avg " + inputTwo + ") AS m3 " +
-				"LIMIT 1) " +
-				"ORDER BY " + inputOne + " " + inputTwo + ";";
-	}
-
-	/**
-	 * get users
-	 */
-	public List<UserId> getUsers() {
-		List<UserId> users = new LinkedList<>();
-		try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("select * from users");) {
-			while (rs.next() == true) {
-				UserId userId = new UserId();
-				String userName = rs.getString("user_name");
-				userId.setUserId(rs.getInt("user_id"));
-				userId.setUserName(rs.getString("user_name"));
-				try (PreparedStatement pstmt2 = conn.prepareStatement(QueriesName.userLikesAmount)) {
-					pstmt2.setString(1, userName);
-					ResultSet rs2 = pstmt2.executeQuery();
-					if (rs2.next() == false) {
-						userId.setUserLikes(0);
-					} else {
-						userId.setUserLikes(rs2.getInt("likes"));
-					}
-				}
-				users.add(userId);
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR executeQuery - " + e.getMessage());
-		}
-		return users;
 	}
 }
 
